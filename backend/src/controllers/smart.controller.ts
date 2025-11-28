@@ -4,7 +4,10 @@ import prisma from "../config/prisma";
 
 export const smartTodoCreate = async (req: Request, res: Response) => {
   try {
-    const { text, userId } = req.body;
+    const { text, } = req.body;
+    const requestUser = (req as any).user;
+  const userId = requestUser?.id;
+
 
     if (!text) return res.status(400).json({ error: "Text is required" });
     if (userId === undefined || userId === null) return res.status(400).json({ error: "userId is required" });
@@ -13,8 +16,8 @@ export const smartTodoCreate = async (req: Request, res: Response) => {
     if (Number.isNaN(uid)) return res.status(400).json({ error: "userId must be a number" });
 
     // Ensure user exists to avoid FK violation
-    const user = await prisma.user.findUnique({ where: { id: uid } });
-    if (!user) return res.status(400).json({ error: `User with id ${uid} not found` });
+    const existingUser = await prisma.user.findUnique({ where: { id: uid } });
+    if (!existingUser) return res.status(400).json({ error: `User with id ${uid} not found` });
 
     // Get parsed data from NLP service
     const parsed = await parseSmartTodo(text);

@@ -1,0 +1,53 @@
+@rootURL = http://localhost:5000
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2NDM0NTExMiwiZXhwIjoxNzY0MzQ4NzEyfQ.MuNXVh8i1oAxM4RuIYfDLJC2ag8Zno5wCT_ycy2SqOg
+
+###
+// 1. REGISTER USER
+POST → http://localhost:5000/api/auth/register
+
+//request
+{
+  "name": "Pranay",
+  "email": "pranay@example.com",
+  "password": "Pranay@123"
+}
+// response
+{
+  "message": "User registered successfully",
+  "user": {
+    "id": 1,
+    "name": "Pranay",
+    "email": "pranay@example.com"
+  }
+}
+// If email already exists
+{
+  "error": "Email already registered"
+}
+
+
+2.LOGIN USER
+POST → http://localhost:5000/api/auth/login
+//request 
+{
+  "email": "pranay@example.com",
+  "password": "Pranay@123"
+}
+
+
+3.PROTECTED TODO APIS
+GET → http://localhost:5000/api/todos
+Authorization: Bearer <token> //optional
+If valid → your todos
+[
+  {
+    "id": 1,
+    "title": "Learn HTML",
+    "priority": "HIGH",
+    "completed": false
+  }
+]
+If missing/invalid token:
+{
+  "error": "Unauthorized"
+}

@@ -3,7 +3,10 @@ import { processChatAI } from "../services/ai.service";
 
 export const handleChatMessage = async (req: Request, res: Response) => {
   try {
-    const { message, userId } = req.body;
+    const { message } = req.body;
+    const user = (req as any).user;
+   const userId = user?.id;
+
 
     if (!message) {
       return res.status(400).json({ error: "message is required" });
