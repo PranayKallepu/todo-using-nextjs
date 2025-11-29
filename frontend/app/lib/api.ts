@@ -1,36 +1,49 @@
 export const API_BASE = "http://localhost:5000";
 
-export async function createTodo(data: any) {
+export async function createTodo(token: string, data: any) {
   const res = await fetch(`${API_BASE}/api/todos`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(data),
   });
-  console.log("Create Todo Response:", res);
+
   return res.json();
 }
 
-export async function updateTodoApi(id: number, data: any) {
+export async function updateTodoApi(token: string, id: number, data: any) {
   const res = await fetch(`${API_BASE}/api/todos/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(data),
   });
+
   return res.json();
 }
 
-export async function deleteTodoApi(id: number) {
-  return await fetch(`${API_BASE}/api/todos/${id}`, { method: "DELETE" });
+export async function deleteTodoApi(token: string, id: number) {
+  return await fetch(`${API_BASE}/api/todos/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
 }
 
-export async function toggleTodoApi(id: number, completed: boolean) {
-  return await updateTodoApi(id, { completed });
+export async function toggleTodoApi(token: string, id: number, completed: boolean) {
+  return await updateTodoApi(token, id, { completed });
 }
 
-export async function sendChatMessage(message: string) {
+export async function sendChatMessage(token: string, message: string) {
   const res = await fetch(`${API_BASE}/api/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json", 
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({
       message,
       userId: 1,
@@ -45,39 +58,35 @@ const qs = (obj: Record<string, any>) => {
     .map(
       ([k, v]) =>
         `${encodeURIComponent(k)}=${encodeURIComponent(
-          Array.isArray(v) ? v.join(",") : v
+          typeof v === "number" ? v : Array.isArray(v) ? v.join(",") : v
         )}`
     );
   return entries.length ? `?${entries.join("&")}` : "";
 };
 
-export async function fetchTodos(filters?: {
-  userId?: number;
-  from?: string; // ISO date
-  to?: string; // ISO date
-  priority?: string; // HIGH|MEDIUM|LOW
-  completed?: boolean;
-  search?: string;
-}) {
-  // If any date range / priority / completed filter present, call the filter endpoint
-  if (filters && (filters.from || filters.to || filters.priority || filters.completed !== undefined || filters.search)) {
-    const params = {
-      userId: filters.userId ?? 1,
-      from: filters.from,
-      to: filters.to,
-      priority: filters.priority,
-      completed: filters.completed === undefined ? undefined : String(filters.completed),
-      search: filters.search,
-    };
-    const url = `${API_BASE}/api/todos/filter${qs(params)}`;
-    const res = await fetch(url);
+export async function fetchTodos(token: string, filters?: any) {
+  console.log("api:", token);
+
+  if (filters && Object.keys(filters).length > 0) {
+const url = `${API_BASE}/api/todos/filter${qs(filters)}`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return res.json();
   }
 
-  // fallback - fetch all
-  const res = await fetch(`${API_BASE}/api/todos`);
+  const res = await fetch(`${API_BASE}/api/todos`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
   return res.json();
 }
+
+
 
 
 

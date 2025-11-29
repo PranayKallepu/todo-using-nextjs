@@ -3,9 +3,11 @@ export default function MessageBubble({
   text,
 }: {
   sender: "ai" | "user";
-  text: string;
+  text?: string; 
 }) {
   const isAI = sender === "ai";
+
+  const safeText = text ?? "";
 
   return (
     <div className={`flex ${isAI ? "justify-start" : "justify-end"}`}>
@@ -13,7 +15,7 @@ export default function MessageBubble({
         className={`max-w-[75%] px-4 py-2 rounded-xl text-sm shadow 
         ${isAI ? "bg-gray-200 text-gray-800" : "bg-blue-600 text-white"}`}
       >
-        {text.split("\n").map((line, i) => (
+        {safeText.split("\n").map((line, i) => (
           <p key={i}>{line}</p>
         ))}
       </div>

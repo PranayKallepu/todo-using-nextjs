@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import MessageBubble from "./MessageBubble";
 import { sendChatMessage } from "../lib/api";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ChatInterface({ popupMode = false }) {
   const [messages, setMessages] = useState([
@@ -10,6 +11,7 @@ export default function ChatInterface({ popupMode = false }) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const { token } = useAuth();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -31,8 +33,9 @@ export default function ChatInterface({ popupMode = false }) {
     setLoading(true);
 
     try {
-      const res = await sendChatMessage(input);
+      const res = await sendChatMessage(token,input);
       const aiMessage = { sender: "ai", text: res.reply };
+      console.log("aiMessage", aiMessage)
 
       setMessages(prev => [...prev, aiMessage]);
       window.dispatchEvent(new Event("todos-updated"));

@@ -1,14 +1,15 @@
-// /app/todos/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   fetchTodos,
   createTodo,
   deleteTodoApi,
   toggleTodoApi,
   updateTodoApi,
-} from "../app/lib/api";
+} from "@/app/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { redirect } from "next/navigation";
 
 type Todo = {
   id: number;
@@ -25,10 +26,17 @@ const statusFilters = ["all", "completed", "pending"] as const;
 const priorityOptions = ["ALL", "HIGH", "MEDIUM", "LOW"] as const;
 
 export default function TodosPage() {
+  
   const [todos, setTodos] = useState<Todo[]>([]);
+  console.log(todos) // empty array
   const [loading, setLoading] = useState(false);
 
-  // Filters
+  // AUTH
+  const { token, user, authLoading, logout } = useAuth();
+
+  console.log("AUTH STATE →", { authLoading, token, user });
+
+  // FILTER STATES
   const [timeFilter, setTimeFilter] =
     useState<(typeof timeFilters)[number]>("all");
   const [statusFilter, setStatusFilter] =
@@ -37,7 +45,7 @@ export default function TodosPage() {
     useState<(typeof priorityOptions)[number]>("ALL");
   const [search, setSearch] = useState("");
 
-  // Create form
+  // NEW TODO FORM
   const [newTodo, setNewTodo] = useState({
     title: "",
     description: "",
@@ -46,14 +54,12 @@ export default function TodosPage() {
     tags: "",
   });
 
-  // Edit modal
+  // EDIT MODAL
   const [editing, setEditing] = useState<Todo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalSaving, setModalSaving] = useState(false);
 
-  const userId = 1;
-
-  // compute from/to for timeFilter
+  // TIME FILTER RANGE
   const range = useMemo(() => {
     const now = new Date();
     const start = new Date(now);
@@ -64,85 +70,101 @@ export default function TodosPage() {
       end.setHours(23, 59, 59, 999);
       return { from: start.toISOString(), to: end.toISOString() };
     }
+
     if (timeFilter === "tomorrow") {
       start.setDate(start.getDate() + 1);
       start.setHours(0, 0, 0, 0);
+
       end.setDate(end.getDate() + 1);
       end.setHours(23, 59, 59, 999);
+
       return { from: start.toISOString(), to: end.toISOString() };
     }
+
     if (timeFilter === "week") {
-      // next 7 days
       start.setHours(0, 0, 0, 0);
       end.setDate(end.getDate() + 7);
       end.setHours(23, 59, 59, 999);
+
       return { from: start.toISOString(), to: end.toISOString() };
     }
+
     if (timeFilter === "overdue") {
-      // dueDate < today (and not completed) — implement by setting to < today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return {
-        from: undefined,
-        to: new Date(today.getTime() - 1).toISOString(),
-      };
+
+      return { from: undefined, to: new Date(today.getTime() - 1).toISOString() };
     }
+
     return { from: undefined, to: undefined };
   }, [timeFilter]);
 
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const filters: any = { userId };
+  // REFRESH TODOS
+  const refresh = useCallback(async () => {
+  if (!token || !user?.id) return;
 
-      // date range
-      if (range.from) filters.from = range.from;
-      if (range.to) filters.to = range.to;
+  console.log("REFRESH RUN");
 
-      // priority
-      if (priorityFilter !== "ALL") filters.priority = priorityFilter;
+  setLoading(true);
+  try {
+    const filters: any = { userId: user.id };
 
-      // completed
-      if (statusFilter === "completed") filters.completed = true;
-      else if (statusFilter === "pending") filters.completed = false;
+    if (range.from) filters.from = range.from;
+    if (range.to) filters.to = range.to;
+    if (priorityFilter !== "ALL") filters.priority = priorityFilter;
+    if (statusFilter === "completed") filters.completed = true;
+    else if (statusFilter === "pending") filters.completed = false;
+    if (search.trim()) filters.search = search.trim();
 
-      // search
-      if (search.trim()) filters.search = search.trim();
+    console.log("FILTERS SENT →", filters);
 
-      const data = await fetchTodos(filters);
-      setTodos(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const data = await fetchTodos(token, filters);
+    console.log("TODOS RECEIVED →", data);
 
-  useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeFilter, statusFilter, priorityFilter]);
+    setTodos(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error("Refresh Error:", err);
+    setTodos([]);
+  } finally {
+    setLoading(false);
+  }
+}, [token, user?.id, range.from, range.to, priorityFilter, statusFilter, search]);
 
-  // if user types search and presses enter or blur, call refresh
-  useEffect(() => {
-    const t = setTimeout(() => {
-      refresh();
-    }, 450);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+console.log("authLoading:", authLoading, "token:", token, "user:", user);
 
+
+useEffect(() => {
+  if (authLoading) return;
+  if (!token || !user?.id) return;
+  refresh();
+}, [authLoading, token, user?.id, refresh]);
+
+useEffect(() => {
+  if (authLoading) return;
+  if (!token || !user?.id) return;
+  refresh();
+}, [authLoading, token, user?.id, refresh, timeFilter, statusFilter, priorityFilter]);
+
+useEffect(() => {
+  const t = setTimeout(() => {
+    if (token && user?.id) refresh();
+  }, 450);
+  return () => clearTimeout(t);
+}, [search, refresh, token, user?.id]);
+
+
+
+  // CREATE TODO
   const handleCreate = async () => {
     if (!newTodo.title.trim()) return alert("Title required");
 
-    setLoading(true);
-    await createTodo({
+    await createTodo(token, {
       title: newTodo.title.trim(),
       description: newTodo.description || null,
       dueDate: newTodo.dueDate || null,
       priority: newTodo.priority,
       tags: newTodo.tags ? newTodo.tags.split(",").map((t) => t.trim()) : [],
-      userId,
+      userId: user.id,
     });
 
     setNewTodo({
@@ -152,59 +174,59 @@ export default function TodosPage() {
       priority: "MEDIUM",
       tags: "",
     });
-    await refresh();
+
+    refresh();
   };
 
+  // DELETE TODO
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this task?")) return;
-    await deleteTodoApi(id);
-    await refresh();
+    await deleteTodoApi(token, id);
+    refresh();
   };
 
+  // TOGGLE TODO
   const handleToggle = async (id: number, completed: boolean) => {
-    await toggleTodoApi(id, completed);
-    await refresh();
+    await toggleTodoApi(token, id, completed);
+    refresh();
   };
 
+  // OPEN EDIT MODAL
   const openEditModal = (todo: Todo) => {
-    // copy
     setEditing({ ...todo });
     setIsModalOpen(true);
   };
 
+  // SAVE CHANGES
   const saveEdit = async () => {
     if (!editing) return;
-    setModalSaving(true);
 
+    setModalSaving(true);
     try {
-      await updateTodoApi(editing.id, {
+      await updateTodoApi(token, editing.id, {
         title: editing.title,
         description: editing.description,
         dueDate: editing.dueDate || null,
-        priority: editing.priority || null,
+        priority: editing.priority,
         tags: editing.tags || [],
       });
 
       setIsModalOpen(false);
       setEditing(null);
-      await refresh();
+      refresh();
     } catch (err) {
-      console.error(err);
-      alert("Failed to save");
+      console.error("Save error:", err);
     } finally {
       setModalSaving(false);
     }
   };
 
-  useEffect(() => {
-  const handler = () => refresh(); // refresh todos
-  window.addEventListener("todos-updated", handler);
-
-  return () => {
-    window.removeEventListener("todos-updated", handler);
-  };
-}, []);
-
+  // AUTH CHECK
+  if (authLoading) return <p>Loading...</p>;
+  if (!user) {
+    redirect("/login");
+    return null;
+  }
 
   return (
     <main className="min-h-screen text-white bg-gradient-to-br from-slate-900 via-slate-800 to-black p-10 flex justify-center">
@@ -218,14 +240,12 @@ export default function TodosPage() {
             </p>
           </div>
 
-          {/* <div className="flex items-center gap-3">
-            <a
-              href="/chat"
-              className="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg shadow-lg"
-            >
-              NLP AI Assistant
-            </a>
-          </div> */}
+          <button
+            onClick={logout}
+            className="bg-red-500 text-white px-4 py-2 rounded"
+          >
+            Logout
+          </button>
         </div>
 
         {/* Filters */}
