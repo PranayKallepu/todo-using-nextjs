@@ -27,7 +27,6 @@ app.use("/api/todos/smart", smartRoutes);
 // Route 4: Auth Routes
 app.use("/api/auth", authRoutes);
 
-
 // Start the server
 app.listen(5000, () => {
   console.log("Server running on http://localhost:5000");
