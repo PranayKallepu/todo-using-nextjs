@@ -38,7 +38,7 @@ export const parseSmartTodo = (text: string) => {
   // TAGS
   const tagMatches = text.match(/#\w+/g);
   if (tagMatches) {
-    tags = tagMatches.map(t => t.replace("#", ""));
+    tags = tagMatches.map((t) => t.replace("#", ""));
   }
 
   // FINAL CLEAN TITLE
@@ -63,7 +63,7 @@ export interface ParsedIntent {
   type: "create" | "update" | "delete" | "markDone" | "list" | "unknown";
   title?: string;
   newDueDate?: Date | null;
-  range?: string;
+  range?: string | null;
   dueDate?: Date | null;
   priority?: Priority | null;
   recurrence?: string | null;
@@ -76,31 +76,26 @@ export const analyzeText = async (text: string): Promise<ParsedIntent> => {
 
   // 1️⃣ LIST INTENT
   if (intentType === "list") {
-    let range = null;
-
-    if (cleaned.includes("today")) range = "today";
-    if (cleaned.includes("tomorrow")) range = "tomorrow";
-    if (cleaned.includes("next week")) range = "nextWeek";
-
+    const range = cleaned.includes("today")
+      ? "today"
+      : cleaned.includes("tomorrow")
+      ? "tomorrow"
+      : cleaned.includes("next week")
+      ? "nextWeek"
+      : null;
     return { type: "list", range };
   }
 
   // 2️⃣ MARK DONE INTENT
   if (intentType === "markDone") {
-    const title = cleaned
-      .replace("mark", "")
-      .replace("as done", "")
-      .trim();
+    const title = cleaned.replace("mark", "").replace("as done", "").trim();
 
     return { type: "markDone", title };
   }
 
   // 3️⃣ DELETE INTENT
   if (intentType === "delete") {
-    const title = cleaned
-      .replace("delete", "")
-      .replace("remove", "")
-      .trim();
+    const title = cleaned.replace("delete", "").replace("remove", "").trim();
 
     return { type: "delete", title };
   }

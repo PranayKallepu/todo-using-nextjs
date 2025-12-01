@@ -1,18 +1,11 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Priority } from "@prisma/client";
 import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 
 export const createTodo = async (req: Request, res: Response) => {
   try {
-    const {
-      title,
-      description,
-      dueDate,
-      priority,
-      tags,
-      userId,
-    } = req.body;
+    const { title, description, dueDate, priority, tags, userId } = req.body;
 
     if (!title || !userId) {
       return res.status(400).json({ error: "title and userId are required" });
@@ -56,7 +49,7 @@ export const updateTodo = async (req: Request, res: Response) => {
       dueDate,
       priority,
       tags,
-      recurrence
+      recurrence,
     } = req.body;
 
     const todo = await prisma.todo.update({
@@ -65,7 +58,9 @@ export const updateTodo = async (req: Request, res: Response) => {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(completed !== undefined && { completed }),
-        ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+        ...(dueDate !== undefined && {
+          dueDate: dueDate ? new Date(dueDate) : null,
+        }),
         ...(priority !== undefined && { priority }),
         ...(tags !== undefined && { tags }),
         ...(recurrence !== undefined && { recurrence }),
@@ -73,7 +68,6 @@ export const updateTodo = async (req: Request, res: Response) => {
     });
 
     return res.json(todo);
-
   } catch (error) {
     console.error("Update error:", error);
     return res.status(404).json({ error: "Todo not found or update failed" });
@@ -93,20 +87,15 @@ export const deleteTodo = async (req: Request, res: Response) => {
 
 export const filterTodos = async (req: Request, res: Response) => {
   try {
-    const { userId, from, to, priority, completed, search } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required" });
-    }
+    const { from, to, priority, completed, search } = req.query;
+    const userId = (req as any).user.id;
 
     const todos = await prisma.todo.findMany({
       where: {
-        userId: Number(userId),
+        userId,
 
-        // Optional priority filter
-        priority: priority ? priority.toString().toUpperCase() as any : undefined,
+        priority: (priority as Priority) ? (priority as Priority) : undefined,
 
-        // Optional completed filter
         completed:
           completed === "true"
             ? true
@@ -114,14 +103,14 @@ export const filterTodos = async (req: Request, res: Response) => {
             ? false
             : undefined,
 
-        // Optional date range filter
         dueDate: {
           gte: from ? new Date(from.toString()) : undefined,
           lte: to ? new Date(to.toString()) : undefined,
         },
-        // Optional search filter
-        title: search ? { contains: search.toString(), mode: "insensitive" } : undefined,
-        
+
+        title: search
+          ? { contains: search.toString(), mode: "insensitive" }
+          : undefined,
       },
       orderBy: { dueDate: "asc" },
     });
