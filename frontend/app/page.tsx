@@ -243,14 +243,14 @@ export default function TodosPage() {
   };
 
   // AUTH CHECK
-  if (authLoading) return <p className="text-start">Loading...</p>;
+  if (authLoading) return <p className="text-center">Loading...</p>;
   if (!user) {
     redirect("/login");
     return null;
   }
 
   return (
-    <main className="min-h-screen text-white bg-gradient-to-br from-slate-900 via-slate-800 to-black p-10 flex justify-center">
+    <main className="min-h-screen text-white bg-gradient-to-br from-slate-900 via-slate-800 to-black p-2 pt-8 flex justify-center">
       <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
@@ -408,7 +408,7 @@ export default function TodosPage() {
         {/* List */}
         <div className="space-y-4">
           {loading && (
-            <div className="text-center text-gray-300">Loading...</div>
+            <div className="text-center text-gray-300">...</div>
           )}
           {!loading && todos.length === 0 && (
             <div className="text-center text-gray-400 py-10">
