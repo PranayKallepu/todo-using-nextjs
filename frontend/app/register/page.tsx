@@ -9,6 +9,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -20,7 +21,7 @@ export default function RegisterPage() {
 
   const handleRegister = async () => {
     setError("");
-
+    setLoading(true);
     const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,6 +36,7 @@ export default function RegisterPage() {
     } else {
       setError(data.error || "Something went wrong");
     }
+    setLoading(false);
   };
 
   return (
@@ -93,7 +95,7 @@ export default function RegisterPage() {
           onClick={handleRegister}
           className="w-full p-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg shadow-lg hover:opacity-90 transition-all"
         >
-          Register
+          {loading ? "Registering..." : "Register"}
         </button>
 
         <p className="mt-5 text-center text-white/80 text-sm">

@@ -243,7 +243,7 @@ export default function TodosPage() {
   };
 
   // AUTH CHECK
-  if (authLoading) return <p>Loading...</p>;
+  if (authLoading) return <p className="text-start">Loading...</p>;
   if (!user) {
     redirect("/login");
     return null;

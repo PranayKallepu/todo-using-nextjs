@@ -15,10 +15,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setError("");
-
+    setLoading(true);
     const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,6 +36,7 @@ export default function LoginPage() {
     } else {
       setError(data.error || "Invalid email or password");
     }
+    setLoading(false);
   };
 
   return (
@@ -79,7 +81,7 @@ export default function LoginPage() {
           onClick={handleLogin}
           className="w-full p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg shadow-lg hover:opacity-90 transition-all"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <p className="mt-5 text-center text-white/80 text-sm">
