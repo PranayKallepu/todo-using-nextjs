@@ -173,6 +173,8 @@ export default function TodosPage() {
   // CREATE TODO
   const handleCreate = async () => {
     if (!newTodo.title.trim()) return alert("Title required");
+    if (!token) return alert("Not authenticated");
+    if (!user?.id) return alert("User not authenticated");
 
     await createTodo(token, {
       title: newTodo.title.trim(),
