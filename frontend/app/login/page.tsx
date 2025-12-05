@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
@@ -17,7 +19,7 @@ export default function LoginPage() {
   const handleLogin = async () => {
     setError("");
 
-    const res = await fetch("http://localhost:5000/api/auth/login", {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -26,8 +28,10 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (res.ok) {
-      login(data.token, data.user);
+      console.log("before confirm")
+      login(data.token);
       router.push("/");
+      console.log("after consoled confirm")
     } else {
       setError(data.error || "Invalid email or password");
     }
