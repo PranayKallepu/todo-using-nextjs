@@ -5,8 +5,10 @@ import MessageBubble from "./MessageBubble";
 import { sendChatMessage } from "../lib/api";
 import { useAuth } from "../../context/AuthContext";
 
+type Message = { sender: "ai" | "user"; text: string };
+
 export default function ChatInterface({ popupMode = false }) {
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     { sender: "ai", text: "Hello! How can I help you with your tasks today?" },
   ]);
   const [input, setInput] = useState("");
@@ -25,8 +27,9 @@ export default function ChatInterface({ popupMode = false }) {
 
   const handleSend = async () => {
     if (!input.trim()) return;
+    if (!token) return;
 
-    const userMessage = { sender: "user", text: input };
+    const userMessage: Message = { sender: "user", text: input };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
 
@@ -34,12 +37,13 @@ export default function ChatInterface({ popupMode = false }) {
 
     try {
       const res = await sendChatMessage(token,input);
-      const aiMessage = { sender: "ai", text: res.reply };
+      const aiMessage: Message = { sender: "ai", text: res.reply };
       console.log("aiMessage", aiMessage)
 
       setMessages(prev => [...prev, aiMessage]);
       window.dispatchEvent(new Event("todos-updated"));
     } catch (err) {
+      console.log(err)
       setMessages(prev => [
         ...prev,
         { sender: "ai", text: "⚠️ Something went wrong. Try again." },

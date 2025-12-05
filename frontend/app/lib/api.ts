@@ -1,9 +1,10 @@
-export const API_BASE = "http://localhost:5000";
+// export const API_BASE = "http://localhost:5000";
+export const API_BASE = "https://ai-todo-backend-exhv.onrender.com";
 
 export async function createTodo(token: string, data: any) {
   const res = await fetch(`${API_BASE}/api/todos`, {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
@@ -16,7 +17,7 @@ export async function createTodo(token: string, data: any) {
 export async function updateTodoApi(token: string, id: number, data: any) {
   const res = await fetch(`${API_BASE}/api/todos/${id}`, {
     method: "PATCH",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
@@ -33,7 +34,11 @@ export async function deleteTodoApi(token: string, id: number) {
   });
 }
 
-export async function toggleTodoApi(token: string, id: number, completed: boolean) {
+export async function toggleTodoApi(
+  token: string,
+  id: number,
+  completed: boolean
+) {
   return await updateTodoApi(token, id, { completed });
 }
 
@@ -41,7 +46,7 @@ export async function sendChatMessage(token: string, message: string) {
   const res = await fetch(`${API_BASE}/api/chat`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json", 
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
@@ -68,7 +73,7 @@ export async function fetchTodos(token: string, filters?: any) {
   console.log("api:", token);
 
   if (filters && Object.keys(filters).length > 0) {
-const url = `${API_BASE}/api/todos/filter${qs(filters)}`;
+    const url = `${API_BASE}/api/todos/filter${qs(filters)}`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -85,9 +90,3 @@ const url = `${API_BASE}/api/todos/filter${qs(filters)}`;
 
   return res.json();
 }
-
-
-
-
-
-

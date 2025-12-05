@@ -10,6 +10,7 @@ import {
 } from "@/app/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { redirect } from "next/navigation";
+// import ChatWidget from "./components/ChatWidget";
 
 type Todo = {
   id: number;
@@ -26,9 +27,8 @@ const statusFilters = ["all", "completed", "pending"] as const;
 const priorityOptions = ["ALL", "HIGH", "MEDIUM", "LOW"] as const;
 
 export default function TodosPage() {
-  
   const [todos, setTodos] = useState<Todo[]>([]);
-  console.log(todos) // empty array
+  console.log(todos); // empty array
   const [loading, setLoading] = useState(false);
 
   // AUTH
@@ -93,7 +93,10 @@ export default function TodosPage() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      return { from: undefined, to: new Date(today.getTime() - 1).toISOString() };
+      return {
+        from: undefined,
+        to: new Date(today.getTime() - 1).toISOString(),
+      };
     }
 
     return { from: undefined, to: undefined };
@@ -101,58 +104,71 @@ export default function TodosPage() {
 
   // REFRESH TODOS
   const refresh = useCallback(async () => {
-  if (!token || !user?.id) return;
+    if (!token || !user?.id) return;
 
-  console.log("REFRESH RUN");
+    console.log("REFRESH RUN");
 
-  setLoading(true);
-  try {
-    const filters: any = { userId: user.id };
+    setLoading(true);
+    try {
+      const filters: any = { userId: user.id };
 
-    if (range.from) filters.from = range.from;
-    if (range.to) filters.to = range.to;
-    if (priorityFilter !== "ALL") filters.priority = priorityFilter;
-    if (statusFilter === "completed") filters.completed = true;
-    else if (statusFilter === "pending") filters.completed = false;
-    if (search.trim()) filters.search = search.trim();
+      if (range.from) filters.from = range.from;
+      if (range.to) filters.to = range.to;
+      if (priorityFilter !== "ALL") filters.priority = priorityFilter;
+      if (statusFilter === "completed") filters.completed = true;
+      else if (statusFilter === "pending") filters.completed = false;
+      if (search.trim()) filters.search = search.trim();
 
-    console.log("FILTERS SENT →", filters);
+      console.log("FILTERS SENT →", filters);
 
-    const data = await fetchTodos(token, filters);
-    console.log("TODOS RECEIVED →", data);
+      const data = await fetchTodos(token, filters);
+      console.log("TODOS RECEIVED →", data);
 
-    setTodos(Array.isArray(data) ? data : []);
-  } catch (err) {
-    console.error("Refresh Error:", err);
-    setTodos([]);
-  } finally {
-    setLoading(false);
-  }
-}, [token, user?.id, range.from, range.to, priorityFilter, statusFilter, search]);
+      setTodos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Refresh Error:", err);
+      setTodos([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    token,
+    user?.id,
+    range.from,
+    range.to,
+    priorityFilter,
+    statusFilter,
+    search,
+  ]);
 
-console.log("authLoading:", authLoading, "token:", token, "user:", user);
+  console.log("authLoading:", authLoading, "token:", token, "user:", user);
 
+  useEffect(() => {
+    if (authLoading) return;
+    if (!token || !user?.id) return;
+    refresh();
+  }, [authLoading, token, user?.id, refresh]);
 
-useEffect(() => {
-  if (authLoading) return;
-  if (!token || !user?.id) return;
-  refresh();
-}, [authLoading, token, user?.id, refresh]);
+  useEffect(() => {
+    if (authLoading) return;
+    if (!token || !user?.id) return;
+    refresh();
+  }, [
+    authLoading,
+    token,
+    user?.id,
+    refresh,
+    timeFilter,
+    statusFilter,
+    priorityFilter,
+  ]);
 
-useEffect(() => {
-  if (authLoading) return;
-  if (!token || !user?.id) return;
-  refresh();
-}, [authLoading, token, user?.id, refresh, timeFilter, statusFilter, priorityFilter]);
-
-useEffect(() => {
-  const t = setTimeout(() => {
-    if (token && user?.id) refresh();
-  }, 450);
-  return () => clearTimeout(t);
-}, [search, refresh, token, user?.id]);
-
-
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (token && user?.id) refresh();
+    }, 450);
+    return () => clearTimeout(t);
+  }, [search, refresh, token, user?.id]);
 
   // CREATE TODO
   const handleCreate = async () => {
@@ -238,6 +254,12 @@ useEffect(() => {
             <p className="text-gray-300 mt-1">
               Manage tasks quickly with filters and AI assistant
             </p>
+            {user && (
+              <h3 className="text-xl font-bold mb-4">
+                Hi {user.name?.split(" ")[0] || "User"}, today you have{" "}
+                <span className="text-blue-600">{todos.length}</span> tasks.
+              </h3>
+            )}
           </div>
 
           <button
@@ -288,7 +310,7 @@ useEffect(() => {
               onChange={(e) => setPriorityFilter(e.target.value as any)}
             >
               {priorityOptions.map((p) => (
-                <option key={p} value={p}>
+                <option key={p} value={p} className="text-black">
                   {p === "ALL" ? "All Priorities" : p}
                 </option>
               ))}
@@ -322,9 +344,9 @@ useEffect(() => {
               }
               className="bg-white/5 p-2 rounded"
             >
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
+              <option value="LOW" className="text-black">Low</option>
+              <option value="MEDIUM" className="text-black">Medium</option>
+              <option value="HIGH" className="text-black">High</option>
             </select>
 
             <input
@@ -565,6 +587,7 @@ useEffect(() => {
           </div>
         </div>
       )}
+      
     </main>
   );
 }
