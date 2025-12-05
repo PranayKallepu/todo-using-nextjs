@@ -2,6 +2,95 @@
 
 A simple ToDo application with a Next.js frontend and an Express + TypeScript backend using Prisma for the database layer.
 
+## 🚀 Features
+
+### 🧠 AI Assistant (Floating Chat Widget)
+- Intercom-style bottom-right popup
+- Understands natural commands:
+  - “Add meeting tomorrow at 5pm”
+  - “Show my tasks for today”
+  - “Mark grocery shopping as done”
+- Extracts:
+  - Title  
+  - Due Date  
+  - Priority  
+  - Recurrence  
+  - Tags  
+- AI updates the database using Prisma
+
+---
+
+### ✅ Advanced Todo Management
+- Create, edit, delete tasks  
+- Edit modal with full update form  
+- Priority (High/Medium/Low)  
+- Tags + Description + Due Date  
+- Completed/Pending toggle
+
+---
+
+### 🔎 Powerful Filters
+#### **Time-based filters**
+- Today  
+- Tomorrow  
+- This Week  
+- Overdue  
+
+#### **Status filters**
+- All  
+- Completed  
+- Pending  
+
+#### **Priority filters**
+- High  
+- Medium  
+- Low  
+
+#### **Search**
+- Smart fuzzy search on title + description
+
+---
+
+### 🎨 Premium UI / UX
+- Glassmorphism cards
+- Animated popup chat widget
+- Gradient backgrounds
+- Framer Motion animations
+- Responsive modern layout
+
+---
+
+### 🗄️ Backend (Node.js + Express + Prisma)
+- Prisma ORM (PostgreSQL)
+- Todo CRUD routes
+- Filtering route with date range support
+- AI Chat route `/api/chat`
+- NLP + Gemini AI services
+
+---
+
+## 🏗️ Tech Stack
+
+### Frontend
+- Next.js (App Router)
+- React
+- Tailwind CSS
+- Framer Motion
+- ShadCN UI
+- Floating Chat Widget
+
+### Backend
+- Node.js
+- Express.js
+- Prisma ORM
+- PostgreSQL
+
+### AI
+- Google Gemini API
+- NLP for intent + fields extraction
+
+---
+
 ## Repository Structure
 
 - `backend/` — Express + TypeScript API, Prisma ORM

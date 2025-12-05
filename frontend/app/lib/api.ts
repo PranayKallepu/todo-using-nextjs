@@ -1,5 +1,4 @@
-// export const API_BASE = "http://localhost:5000";
-export const API_BASE = "https://ai-todo-backend-exhv.onrender.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export async function createTodo(token: string, data: any) {
   const res = await fetch(`${API_BASE}/api/todos`, {
