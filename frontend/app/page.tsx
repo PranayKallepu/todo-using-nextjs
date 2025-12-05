@@ -199,12 +199,14 @@ export default function TodosPage() {
   // DELETE TODO
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this task?")) return;
+    if (!token) return alert("Not authenticated");
     await deleteTodoApi(token, id);
     refresh();
   };
 
   // TOGGLE TODO
   const handleToggle = async (id: number, completed: boolean) => {
+    if (!token) return alert("Not authenticated");
     await toggleTodoApi(token, id, completed);
     refresh();
   };
@@ -218,6 +220,7 @@ export default function TodosPage() {
   // SAVE CHANGES
   const saveEdit = async () => {
     if (!editing) return;
+    if (!token) return alert("Not authenticated");
 
     setModalSaving(true);
     try {
