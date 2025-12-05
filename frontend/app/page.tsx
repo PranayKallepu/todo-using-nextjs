@@ -250,7 +250,7 @@ export default function TodosPage() {
   }
 
   return (
-    <main className="min-h-screen text-white bg-gradient-to-br from-slate-900 via-slate-800 to-black p-2 pt-8 flex justify-center">
+    <main className="min-h-screen text-white bg-gradient-to-br from-slate-900 via-slate-800 to-black p-2 pt-6 pb-10 flex justify-center">
       <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
